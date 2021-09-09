@@ -1,10 +1,15 @@
 import numpy as np
+from numpy.lib.function_base import quantile
 import seaborn as sns
 import matplotlib.pyplot as plt
 import scipy.cluster
 
 from sklearn.neighbors import NearestNeighbors
 from sklearn.cluster import DBSCAN, KMeans
+from sklearn.cluster import MeanShift
+from sklearn.cluster import estimate_bandwidth
+
+
 
 class GPS_DBScan:
     def __init__(self, df, df_road):
@@ -187,4 +192,78 @@ class GPS_Kmean:
             df_tmp = df_tmp[df_tmp['rd'] == self.rd].reset_index(drop=True)
         df_tmp = df_tmp[['lat', 'lon']]
         return df_tmp
+
+
+class GPS_MeanShift :
+
+    def __init__(self, df, df_road):
+        self.df = df
+        self.df_road = df_road
+        self.rd = 0
+        self.df_meanshift = None
+
+    def set_rd(self, rd):
+        self.rd = rd
+
+    def _process_data(self):
+        df_tmp = self.df.copy()
+        if self.rd > 0:
+            df_tmp = df_tmp[df_tmp['rd'] == self.rd].reset_index(drop=True)
+        df_tmp = df_tmp[['lat', 'lon']]
+        return df_tmp
+
+    def meanshift(self ,quantile ,n_sample=None):
+        # clear data in memory
+        del self.df_meanshift
+
+        # init dataframe for dbscan
+        self.df_meanshift = self._process_data()
+
+        # meanshift clustering 
+        bandwidth = estimate_bandwidth(self.df_meanshift, quantile= quantile, n_samples= n_sample,random_state = 0)
+        clustering = MeanShift(bandwidth=bandwidth, bin_seeding=True).fit(self.df_meanshift)
+        self.df_meanshift["label"] = clustering.labels_
+
+        # get list labels
+        labels = list(set(self.df_meanshift['label'].to_list()))
+
+        # plot
+        self._plot_meanshift(labels)
+
+    def _plot_meanshift(self, labels):
+         # init color for plot
+        customPalette = ['#36382E', '#FF206E', '#E5C687', '#41EAD4', '#5C80BC', '#FB8B24', '#04A777', '#7E8D85', '#B3BFB8', '#6F8695']
+
+        plt.figure(figsize=(20, 15))
+
+        plt.scatter(
+            x=self.df_road['lon'],
+            y=self.df_road['lat'],
+            s=0.5,
+            alpha=0.5
+        )
+
+        for i, label in enumerate(labels):
+            plt.scatter(
+                x=self.df_meanshift[self.df_meanshift['label'] == label]['lon'],
+                y=self.df_meanshift[self.df_meanshift['label'] == label]['lat'],
+                color=customPalette[i % len(customPalette)],
+                alpha=1
+            )
+
+            plt.annotate(
+                label,
+                self.df_meanshift.loc[self.df_meanshift['label'] == label, ['lon', 'lat']].mean(),
+                horizontalalignment='center',
+                verticalalignment='center',
+                size=10,
+                weight='bold',
+                color='white',
+                backgroundcolor=customPalette[i % len(customPalette)]
+            )
+
+        plt.show()
+
+    def get_top_cluster(self):
+        return self.df_meanshift['label'].value_counts()[:10]
 
