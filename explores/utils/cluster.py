@@ -50,7 +50,7 @@ class GPS_DBScan:
         self.df_dbscan = self._process_data()
 
         # dbscan clustering
-        clustering = DBSCAN(eps=eps, min_samples=min_samples).fit(self.df_dbscan)
+        clustering = DBSCAN(eps=eps, min_samples=min_samples).fit(self.df_dbscan[['lat', 'lon']])
         self.df_dbscan['label'] = clustering.labels_
 
         # clear noise in dataframe
@@ -107,7 +107,6 @@ class GPS_DBScan:
         df_tmp = self.df.copy()
         if self.rd > 0:
             df_tmp = df_tmp[df_tmp['rd'] == self.rd].reset_index(drop=True)
-        df_tmp = df_tmp[['lat', 'lon']]
         return df_tmp
 
 
@@ -151,7 +150,7 @@ class GPS_Kmean:
 
         # kmean clustering
         model = KMeans(n_clusters=self.k, init='k-means++')
-        self.df_kmean['cluster'] = model.fit_predict(self.df_kmean)
+        self.df_kmean['cluster'] = model.fit_predict(self.df_kmean[['lat', 'lon']])
 
         closest, _ = scipy.cluster.vq.vq(model.cluster_centers_, self.df_kmean.drop(['cluster'], axis=1).values)
 
@@ -190,7 +189,6 @@ class GPS_Kmean:
         df_tmp = self.df.copy()
         if self.rd > 0:
             df_tmp = df_tmp[df_tmp['rd'] == self.rd].reset_index(drop=True)
-        df_tmp = df_tmp[['lat', 'lon']]
         return df_tmp
 
 
@@ -209,7 +207,6 @@ class GPS_MeanShift :
         df_tmp = self.df.copy()
         if self.rd > 0:
             df_tmp = df_tmp[df_tmp['rd'] == self.rd].reset_index(drop=True)
-        df_tmp = df_tmp[['lat', 'lon']]
         return df_tmp
 
     def meanshift(self ,quantile ,n_sample=None):
@@ -221,7 +218,7 @@ class GPS_MeanShift :
 
         # meanshift clustering 
         bandwidth = estimate_bandwidth(self.df_meanshift, quantile= quantile, n_samples= n_sample,random_state = 0)
-        clustering = MeanShift(bandwidth=bandwidth, bin_seeding=True).fit(self.df_meanshift)
+        clustering = MeanShift(bandwidth=bandwidth, bin_seeding=True).fit(self.df_meanshift[['lat', 'lon']])
         self.df_meanshift["label"] = clustering.labels_
 
         # get list labels
