@@ -80,10 +80,12 @@ class FindTravelTime():
                     stop_start = stop_start.append({"unit_id":temp.loc[i,"unit_id"],"lat_0":temp.loc[i,"lat"],
                     "lon_0":temp.loc[i,"lon"],"lat_1":temp.loc[i+1,"lat"],"lon_1":temp.loc[i+1,"lon"],"t0":temp.loc[i,"time_stamp"],
                      "t1":temp.loc[i+1,"time_stamp"],"delta_t": pd.Timedelta(temp.loc[i+1,"time_stamp"] - temp.loc[i,"time_stamp"]).seconds},ignore_index=True)
+        self.df_start_stop = start_stop
+        self.df_stop_start = stop_start
 
         return start_stop ,stop_start
 
-    def find_travel_time_per_hour(self):
+    def find_travel_time_select_hour(self,hour=1):
         df = self._preprocess()
         list_uid = list(df["unit_id"].unique())
          
@@ -97,41 +99,22 @@ class FindTravelTime():
             for i in range(len(temp)-1):
                 if (temp.loc[i,"position"] == "start") & (temp.loc[i+1,"position"]== "stop") :
                     start_stop = start_stop.append({"unit_id":temp.loc[i,"unit_id"],"lat_0":temp.loc[i,"lat"],
-                    "lon_0":temp.loc[i,"lon"],"lat_1":temp.loc[i+1,"lat"],"lon_1":temp.loc[i+1,"lon"],"time_range":temp.loc[i,"time_stamp"].hour, 
+                    "lon_0":temp.loc[i,"lon"],"lat_1":temp.loc[i+1,"lat"],"lon_1":temp.loc[i+1,"lon"],"time_range":(temp.loc[i,"time_stamp"].hour//hour)*hour, 
                     "delta_t": pd.Timedelta(temp.loc[i+1,"time_stamp"] - temp.loc[i,"time_stamp"]).seconds},ignore_index=True)
                 elif (temp.loc[i,"position"] == "stop") & (temp.loc[i+1,"position"]== "start") :
                     stop_start = stop_start.append({"unit_id":temp.loc[i,"unit_id"],"lat_0":temp.loc[i,"lat"],
-                    "lon_0":temp.loc[i,"lon"],"lat_1":temp.loc[i+1,"lat"],"lon_1":temp.loc[i+1,"lon"],"time_range":temp.loc[i,"time_stamp"].hour,
+                    "lon_0":temp.loc[i,"lon"],"lat_1":temp.loc[i+1,"lat"],"lon_1":temp.loc[i+1,"lon"],"time_range":(temp.loc[i,"time_stamp"].hour//hour)*hour,
                     "delta_t": pd.Timedelta(temp.loc[i+1,"time_stamp"] - temp.loc[i,"time_stamp"]).seconds},ignore_index=True)
 
         start_stop = start_stop.sort_values(by=["time_range"]).reset_index(drop=True)
         stop_start = stop_start.sort_values(by=["time_range"]).reset_index(drop=True)
 
-        return start_stop ,stop_start
+        start_stop = self._clean_outlier(start_stop)
+        stop_start = self._clean_outlier(stop_start)
 
-    def find_travel_time_per_three_hour(self):
-        df = self._preprocess()
-        list_uid = list(df["unit_id"].unique())
-         
-        start_stop = pd.DataFrame(columns=["time_range","unit_id","lat_0","lon_0","lat_1","lon_1","delta_t"])
-        stop_start = pd.DataFrame(columns=["time_range","unit_id","lat_0","lon_0","lat_1","lon_1","delta_t"])
+        self.df_start_stop = start_stop
+        self.df_stop_start = stop_start
 
-        for uid in list_uid :
-
-            temp = df[df["unit_id"] == uid].reset_index(drop=True)
-    
-            for i in range(len(temp)-1):
-                if (temp.loc[i,"position"] == "start") & (temp.loc[i+1,"position"]== "stop") :
-                    start_stop = start_stop.append({"unit_id":temp.loc[i,"unit_id"],"lat_0":temp.loc[i,"lat"],
-                    "lon_0":temp.loc[i,"lon"],"lat_1":temp.loc[i+1,"lat"],"lon_1":temp.loc[i+1,"lon"],"time_range":(temp.loc[i,"time_stamp"].hour//3)*3, 
-                    "delta_t": pd.Timedelta(temp.loc[i+1,"time_stamp"] - temp.loc[i,"time_stamp"]).seconds},ignore_index=True)
-                elif (temp.loc[i,"position"] == "stop") & (temp.loc[i+1,"position"]== "start") :
-                    stop_start = stop_start.append({"unit_id":temp.loc[i,"unit_id"],"lat_0":temp.loc[i,"lat"],
-                    "lon_0":temp.loc[i,"lon"],"lat_1":temp.loc[i+1,"lat"],"lon_1":temp.loc[i+1,"lon"],"time_range":(temp.loc[i,"time_stamp"].hour//3)*3,
-                    "delta_t": pd.Timedelta(temp.loc[i+1,"time_stamp"] - temp.loc[i,"time_stamp"]).seconds},ignore_index=True)
-
-        start_stop = start_stop.sort_values(by=["time_range"]).reset_index(drop=True)
-        stop_start = stop_start.sort_values(by=["time_range"]).reset_index(drop=True)
 
         return start_stop ,stop_start
 
@@ -145,4 +128,20 @@ class FindTravelTime():
         plt.scatter(x = df["lon"],y=df["lat"],c="red"  )
 
         plt.show
+
+    def _clean_outlier(self,df):
+        hour = list(set(df["time_range"]))
+        all_clean = pd.DataFrame()
+
+        for hr in hour :
+            temp = df[df["time_range"] == hr]
+            q1 = temp["delta_t"].quantile(0.25)
+            q3 = temp["delta_t"].quantile(0.75)
+            iqr = q3-q1  
+            #print("hr = {} lower = {}  upper = {}".format(hr,(q1 - 1.5 * iqr),(q3 + 1.5 * iqr)))
+            all_clean = all_clean.append(temp[(temp["delta_t"] >= (q1 - 1.5 * iqr))  & (temp["delta_t"] <= (q3 + 1.5 * iqr)) ])
+
+        return all_clean
+
         
+    
