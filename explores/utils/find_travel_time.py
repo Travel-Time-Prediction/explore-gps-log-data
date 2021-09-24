@@ -109,12 +109,14 @@ class FindTravelTime():
         start_stop = start_stop.sort_values(by=["time_range"]).reset_index(drop=True)
         stop_start = stop_start.sort_values(by=["time_range"]).reset_index(drop=True)
 
+        start_stop = self._clean_outlier_entire_day(start_stop)
+        stop_start = self._clean_outlier_entire_day(stop_start)
+
         start_stop = self._clean_outlier(start_stop)
         stop_start = self._clean_outlier(stop_start)
 
         self.df_start_stop = start_stop
         self.df_stop_start = stop_start
-
 
         return start_stop ,stop_start
 
@@ -142,6 +144,15 @@ class FindTravelTime():
             all_clean = all_clean.append(temp[(temp["delta_t"] >= (q1 - 1.5 * iqr))  & (temp["delta_t"] <= (q3 + 1.5 * iqr)) ])
 
         return all_clean
+
+            
+    def _clean_outlier_entire_day(self,df):
+        q1 = df["delta_t"].quantile(0.25)
+        q3 = df["delta_t"].quantile(0.75)
+        iqr = q3-q1
+        df = df[(df["delta_t"] >= (q1 - 1.5 * iqr))  & (df["delta_t"] <= (q3 + 1.5 * iqr)) ]
+
+        return df
 
         
     
