@@ -11,13 +11,10 @@ def clean_df_tmp(df_tmp):
     df_tmp = df_tmp[unit_type].reset_index(drop=True)
     return df_tmp
 
-def load_gps_data(gps_data_dir):
+def load_gps_data(gps_data_dir,days_list,months_list,years_list):
     """
     Function for load and merge dataframes.
     """
-    years_list = ['2019']
-    months_list = ['03']
-    days_list = ['01']
     df_list = []
 
     for year in years_list:
