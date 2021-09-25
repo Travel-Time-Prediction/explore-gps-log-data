@@ -11,16 +11,17 @@ def clean_df_tmp(df_tmp):
     df_tmp = df_tmp[unit_type].reset_index(drop=True)
     return df_tmp
 
-def load_gps_data(gps_data_dir,days_list,months_list,years_list):
+def load_gps_data(gps_data_dir, days_list, months_list, years_list):
     """
     Function for load and merge dataframes.
     """
     df_list = []
 
     for year in years_list:
+        tmp_gps_data_dir = os.path.join(gps_data_dir, year)
         for month in months_list:
             # get list filename in the folder path.
-            file_names = os.listdir(gps_data_dir + f"/{year}-{month}/")
+            file_names = os.listdir(tmp_gps_data_dir + f"/{year}-{month}/")
             for day in days_list:
                 amount_day = 0
                 for file_name in file_names:
@@ -28,7 +29,7 @@ def load_gps_data(gps_data_dir,days_list,months_list,years_list):
                     if len(file_name_part) > 2:
                         # select the day we chose from filename.
                         if file_name_part[2] == day:
-                            _tmp = pd.read_csv(gps_data_dir + f"/{year}-{month}/" + file_name, compression='zip', parse_dates=['time_stamp'])
+                            _tmp = pd.read_csv(tmp_gps_data_dir + f"/{year}-{month}/" + file_name, compression='zip', parse_dates=['time_stamp'])
                             _tmp = clean_df_tmp(_tmp)
                             df_list.append(_tmp)
                             amount_day += 1
