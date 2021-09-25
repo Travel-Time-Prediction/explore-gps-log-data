@@ -9,6 +9,10 @@ def clean_df_tmp(df_tmp):
     unit_type = df_tmp['unit_type'].isin([6, 7])
 
     df_tmp = df_tmp[unit_type].reset_index(drop=True)
+    df_tmp['lat'] = pd.to_numeric(df_tmp['lat'], errors='coerce')
+    df_tmp['lon'] = pd.to_numeric(df_tmp['lon'], errors='coerce')
+    df_tmp = df_tmp.dropna(subset=['lat', 'lon']).reset_index(drop=True)
+
     return df_tmp
 
 def load_gps_data(gps_data_dir, days_list, months_list, years_list):
