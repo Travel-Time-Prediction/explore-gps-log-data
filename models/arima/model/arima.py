@@ -82,19 +82,24 @@ class ARIMA_MODEL():
                 break
 
     def grid_search(self):
-        p = range(0, 20)
-        d = range(0, 2)
-        q = range(0, 20)
+        p = range(0, 10)
+        d = range(0,1)
+        q = range(0, 12)
         pdq = list(itertools.product(p, d, q))
-        
+        lowest = 100000000.0
         aic = []
 
         for param in pdq:
             try:
-                model = ARIMA(self.df['delta_t'].dropna(), order = param)
+                model = ARIMA(self.train['delta_t'].dropna(), order = param)
                 results = model.fit()
-                print('Order = {}'.format(param))
-                print('AIC = {}'.format(results.aic))
+                #print('Order = {}'.format(param))
+                #print('AIC = {}'.format(results.aic))
+                if results.aic < lowest :
+                    lowest = results.aic
+                    print('Order = {}'.format(param))
+                    print('AIC = {}'.format(results.aic))
+                    self.results = results
                 a = 'Order: '+str(param) +' AIC: ' + str(results.aic)
                 aic.append(a)
             except:
@@ -110,6 +115,8 @@ class ARIMA_MODEL():
         plt.plot(self.train['delta_t'], color = 'green', label = 'Actual diff')
         plt.plot(self.results.predict(), color= 'orange', label = 'Predicted diff')
         plt.legend()
+        plt.title("ARIMA({},{},{})".format(self.p,self.d,self.q))
+
     
     def test_model(self):
 
@@ -127,7 +134,7 @@ class ARIMA_MODEL():
         plt.plot(df_pred['delta_t'], color = 'green', label = 'Actual delta_t')
         plt.plot(df_pred['Predicted'], color='orange', label = 'Predicted delta_t')
         plt.legend()
-        plt.title("MSE = {} , MAE = {}".format(mse,mae))
+        plt.title("ARIMA({},{},{}) ,  MSE = {} , MAE = {}".format(self.p,self.d,self.q,mse,mae))
 
        
 
