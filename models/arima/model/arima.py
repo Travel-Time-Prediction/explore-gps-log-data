@@ -24,6 +24,7 @@ import itertools
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 
+
 from statsmodels.tsa.seasonal import seasonal_decompose
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
@@ -82,7 +83,7 @@ class ARIMA_MODEL():
                 break
 
     def grid_search(self):
-        p = range(0, 10)
+        p = range(3, 10)
         d = range(0,1)
         q = range(0, 12)
         pdq = list(itertools.product(p, d, q))
@@ -100,6 +101,9 @@ class ARIMA_MODEL():
                     print('Order = {}'.format(param))
                     print('AIC = {}'.format(results.aic))
                     self.results = results
+                    self.p = param[0]
+                    self.d = param[1]
+                    self.q = param[2]
                 a = 'Order: '+str(param) +' AIC: ' + str(results.aic)
                 aic.append(a)
             except:
@@ -116,6 +120,7 @@ class ARIMA_MODEL():
         plt.plot(self.results.predict(), color= 'orange', label = 'Predicted diff')
         plt.legend()
         plt.title("ARIMA({},{},{})".format(self.p,self.d,self.q))
+        
 
     
     def test_model(self):
@@ -127,14 +132,16 @@ class ARIMA_MODEL():
         prediction = pd.DataFrame(test_results, columns = ['Predicted'])
         df_pred = pd.merge(self.test, prediction, how = 'left', left_index = True, right_index = True)
 
+        rmse = mean_squared_error(df_pred['delta_t'], df_pred['Predicted'],squared=False)
         mse = mean_squared_error(df_pred['delta_t'], df_pred['Predicted'])
         mae = mean_absolute_error(df_pred['delta_t'], df_pred['Predicted'])
+        
 
         plt.figure(figsize=(25,5))
         plt.plot(df_pred['delta_t'], color = 'green', label = 'Actual delta_t')
         plt.plot(df_pred['Predicted'], color='orange', label = 'Predicted delta_t')
         plt.legend()
-        plt.title("ARIMA({},{},{}) ,  MSE = {} , MAE = {}".format(self.p,self.d,self.q,mse,mae))
+        plt.title("ARIMA({},{},{}) , RMSE = {} ,  MSE = {} , MAE = {}".format(self.p,self.d,self.q,rmse,mse,mae))
 
        
 
