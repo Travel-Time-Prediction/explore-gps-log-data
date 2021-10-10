@@ -6,7 +6,7 @@ def config_optimizer(cfg, param):
     if cfg['optimizer']['name'] is 'sgd':
         optimizer = optim.SGD(param, lr=cfg['optimizer']['lr'], momentum=cfg['optimizer']['momentum'], weight_decay=cfg['optimizer']['weight_decay'])
     elif cfg['optimizer']['name'] is 'adam':
-        optimizer = optim.Adam(param, lr=cfg['optimizer']['lr'], betas=cfg['optimizer']['beta'], eps=cfg['optimizer']['eps'], weight_decay=cfg['optimizer']['weight_decay'])
+        optimizer = optim.Adam(param, lr=cfg['optimizer']['lr'], betas=cfg['optimizer']['beta'])
     else:
         AssertionError('optimizer can not be recognized.')
     
