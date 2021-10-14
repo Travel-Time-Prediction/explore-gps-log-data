@@ -11,7 +11,10 @@ class TimeDistibuted(nn.Module):
         if len(x.size()) <= 2:
             return self.module(x)
 
-        x_reshape = x.contiguous().view(-1, x.size(-1))
+        x_reshape = x.contiguous().view(-1, 1, x.size(-1))
+
+        print(x_reshape.shape)
+        print(type(x_reshape))
         
         y = self.module(x_reshape)
 
