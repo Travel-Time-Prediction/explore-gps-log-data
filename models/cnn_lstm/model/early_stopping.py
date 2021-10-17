@@ -12,6 +12,7 @@ class EarlyStopping:
         self.val_loss_min = np.Inf
         self.delta = delta
         self.path = path
+        self.state = None
     
     def __call__(self, val_loss, epoch, model, cfg):
         score = -val_loss
@@ -21,7 +22,7 @@ class EarlyStopping:
             self.save_checkpoint(val_loss, epoch, model, cfg)
         elif score < self.best_score + self.delta:
             self.counter += 1
-            print(f"EarlyStopping counter: {self.counter} out of {self.patience}")
+            # print(f"EarlyStopping counter: {self.counter} out of {self.patience}")
             if self.counter >= self.patience:
                 self.early_stop = True
         else:
@@ -38,5 +39,6 @@ class EarlyStopping:
             'epoch': epoch,
             'cfg': cfg,
         }
-        torch.save(state, os.path.join(self.path, f"lstm_{epoch + 1}_{val_loss:.3f}.pth"))
+        # torch.save(state, os.path.join(self.path, f"lstm_{epoch + 1}_{val_loss:.3f}.pth"))
         self.val_loss_min = val_loss
+        self.state = state
