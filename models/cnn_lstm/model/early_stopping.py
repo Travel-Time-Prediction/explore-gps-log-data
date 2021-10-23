@@ -38,5 +38,5 @@ class EarlyStopping:
             'epoch': epoch,
             'cfg': cfg,
         }
-        torch.save(state, os.path.join(self.path, f"cnn_lstm_{idx}_{count}.pth"))
+        torch.save(state, os.path.join(self.path, f"cnn_lstm_time_{idx}_{count}.pth"))
         self.val_loss_min = val_loss

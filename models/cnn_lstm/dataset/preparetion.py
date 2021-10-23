@@ -43,12 +43,14 @@ def generate_data(normalize_data, data_date, num_data_points, scaler, cfg, plot=
         to_plot_data_y_val = np.where(to_plot_data_y_val == 0, None, to_plot_data_y_val)
         to_plot_data_y_test = np.where(to_plot_data_y_test == 0, None, to_plot_data_y_test)
 
+        idx = np.arange(0, len(data_date))
+
         # plot
         fig = plt.figure(figsize=(25, 5), dpi=80)
         fig.patch.set_facecolor((1.0, 1.0, 1.0))
-        plt.plot(data_date, to_plot_data_y_train, label='travel time (train)', color=cfg['plots']['color_train'])
-        plt.plot(data_date, to_plot_data_y_val, label='travel time (validation)', color=cfg['plots']['color_val'])
-        plt.plot(data_date, to_plot_data_y_test, label='travel time (test)', color=cfg['plots']['color_test'])
+        plt.plot(idx, to_plot_data_y_train, label='travel time (train)', color=cfg['plots']['color_train'])
+        plt.plot(idx, to_plot_data_y_val, label='travel time (validation)', color=cfg['plots']['color_val'])
+        plt.plot(idx, to_plot_data_y_test, label='travel time (test)', color=cfg['plots']['color_test'])
 
         plt.title(f"Travel time of truck in rode {road} ({path}) - show traning, test and validation data")
         plt.grid(b=None, which='major', axis='y', linestyle='--')
