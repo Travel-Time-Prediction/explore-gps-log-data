@@ -13,23 +13,23 @@ class EarlyStopping:
         self.delta = delta
         self.path = path
     
-    def __call__(self, val_loss, epoch, model, cfg):
+    def __call__(self, val_loss, epoch, model, cfg, idx, count):
         score = -val_loss
 
         if self.best_score is None:
             self.best_score = score
-            self.save_checkpoint(val_loss, epoch, model, cfg)
+            self.save_checkpoint(val_loss, epoch, model, cfg, idx, count)
         elif score < self.best_score + self.delta:
             self.counter += 1
-            print(f"EarlyStopping counter: {self.counter} out of {self.patience}")
+            # print(f"EarlyStopping counter: {self.counter} out of {self.patience}")
             if self.counter >= self.patience:
                 self.early_stop = True
         else:
             self.best_score = score
-            self.save_checkpoint(val_loss, epoch, model, cfg)
+            self.save_checkpoint(val_loss, epoch, model, cfg, idx, count)
             self.counter = 0
 
-    def save_checkpoint(self, val_loss, epoch, model, cfg):
+    def save_checkpoint(self, val_loss, epoch, model, cfg, idx, count):
         if self.verbose:
             print(f"Validation loss decreased ({self.val_loss_min:.6f} --> {val_loss:.6f}). Saving model ...")
         
@@ -38,5 +38,5 @@ class EarlyStopping:
             'epoch': epoch,
             'cfg': cfg,
         }
-        torch.save(state, os.path.join(self.path, f"lstm_{epoch + 1}_{val_loss:.3f}.pth"))
+        torch.save(state, os.path.join(self.path, f"cnn_lstm_time_{idx}_{count}.pth"))
         self.val_loss_min = val_loss
